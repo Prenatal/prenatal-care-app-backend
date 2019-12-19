@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.db.models import Q
-from django.contrib.auth import authenticate
 from .models import User
 import re
 
@@ -87,7 +86,6 @@ class UserLoginSerializer(serializers.ModelSerializer):
                 'A password is required to log in.'
             )
 
-        user = authenticate(username=email, password=password)
         user = User.objects.filter(
             Q(email=email) |
             Q(username=username)
