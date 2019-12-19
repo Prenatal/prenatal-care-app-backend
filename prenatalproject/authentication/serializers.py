@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.db.models import Q
+from django.contrib.auth import authenticate
 from .models import User
 import re
 
@@ -13,9 +15,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
     email = serializers.EmailField()
     username = serializers.CharField()
-
-    # The client should not be able to send a token along with a registration
-    # request. Making `token` read-only handles that for us.
 
     class Meta:
         model = User
@@ -41,7 +40,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Email already in use")
         return value
 
-
     def validate_username(self, value):
         username_db = User.objects.filter(username=value)
         if username_db.exists():
@@ -56,3 +54,52 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
         return User.objects.create_user(**validated_data)
+
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(allow_blank=True, read_only=True)
+    email = serializers.EmailField(allow_blank=True, required=False)
+    username = serializers.CharField(allow_blank=True, required=False)
+
+    class Meta:
+        model = User
+        fields = [
+            'token',
+            'username',
+            'password',
+            'email'
+        ]
+        extra_kwargs = {"password":
+                        {"write_only": True}
+                        }
+
+    def validate(self, data):
+        user_obj = None
+        email = data.get("email", None)
+        username = data.get("username", None)
+        password = data.get("password")
+        if not email and not username:
+            raise serializers.ValidationError(
+                "A username or email is required to login")
+
+        if password is None:
+            raise serializers.ValidationError(
+                'A password is required to log in.'
+            )
+
+        user = authenticate(username=email, password=password)
+        user = User.objects.filter(
+            Q(email=email) |
+            Q(username=username)
+        )
+        if user.exists():
+            user_obj = user.first()
+        else:
+            raise serializers.ValidationError(
+                " This Email or Username doesn't exist")
+        if user_obj:
+            if not user_obj.check_password(password):
+                raise serializers.ValidationError(
+                    "Incorrect credentials please try again")
+        data["token"] = "some token"
+        return data
