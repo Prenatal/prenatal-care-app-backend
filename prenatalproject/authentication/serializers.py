@@ -35,6 +35,24 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 "Password can not contain only integers")
         return value
 
+    def validate_email(self, value):
+        user_email_db = User.objects.filter(email=value)
+        if user_email_db.exists():
+            raise serializers.ValidationError("Email already in use")
+        return value
+
+
+    def validate_username(self, value):
+        username_db = User.objects.filter(username=value)
+        if username_db.exists():
+            raise serializers.ValidationError("Username already exists")
+        elif len(value) <= 2 or len(value) > 25:
+            raise serializers.ValidationError(
+                "Username should longer than two characters")
+        elif re.compile('[!@#$%^&*:;?><.0-9]').match(value):
+            raise serializers.ValidationError("Invalid characters not allowed")
+        return value
+
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
         return User.objects.create_user(**validated_data)
