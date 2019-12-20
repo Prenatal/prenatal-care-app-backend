@@ -126,3 +126,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'authentication.User'
+
+JWT = {
+    # The algorithm to use for encoding and decoding jwt tokens
+    'ALGORITHM': 'HS256',
+    'EXPIRATION_IN_MINUTES': 60,
+    'TOKEN_PREFIX': 'bearer'
+}
