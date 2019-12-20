@@ -1,4 +1,5 @@
 from rest_framework import serializers
+# from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from .models import User
 import re
@@ -56,7 +57,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(allow_blank=True, read_only=True)
+    token = serializers.CharField(max_length=255, read_only=True)
     email = serializers.EmailField(allow_blank=True, required=False)
     username = serializers.CharField(allow_blank=True, required=False)
 
@@ -99,5 +100,8 @@ class UserLoginSerializer(serializers.ModelSerializer):
             if not user_obj.check_password(password):
                 raise serializers.ValidationError(
                     "Incorrect credentials please try again")
-        data["token"] = "some token"
-        return data
+        return {
+            'email': user_obj.email,
+            'username': user_obj.username,
+            'token': user_obj.token
+        }
