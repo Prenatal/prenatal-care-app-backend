@@ -1,5 +1,4 @@
 from rest_framework import serializers
-# from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from .models import User
 import re
@@ -11,6 +10,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     # Ensure passwords are at least 8 characters long, no longer than 128
     # characters, and can not be read by the client.
     password = serializers.CharField(
+        max_length=128,
+        min_length=8,
         write_only=True
     )
     email = serializers.EmailField()
@@ -18,11 +19,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        # List all of the fields that could possibly be included in a request
-        # or response, including fields specified explicitly above.
         fields = '__all__'
 
     def validate_password(self, value):
+
         if not re.search(r'[0-9]', value):
             raise serializers.ValidationError(
                 "Weak password. Include atleast one integer")
@@ -57,6 +57,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
+
     token = serializers.CharField(max_length=255, read_only=True)
     email = serializers.EmailField(allow_blank=True, required=False)
     username = serializers.CharField(allow_blank=True, required=False)
