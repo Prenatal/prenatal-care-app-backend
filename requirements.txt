@@ -1,5 +1,5 @@
 Django==3.0
-djangorestframework==3.10.3
+djangorestframework==3.11.2
 autopep8==1.4.4
 psycopg2-binary==2.8.4
 PyJWT==1.7.1
